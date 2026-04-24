@@ -316,6 +316,10 @@ static bool deserializeSegment(JsonObject elem, byte it, byte presetId = 0)
   if (!cbuf.isNull()) {
     size_t n = cbuf.size();
     if (n > 144) n = 144;
+    // Free any existing data buffer so dataSize() reflects exactly n*3 after
+    // the new allocation. Without this, allocateData() reuses a larger prior
+    // buffer and the effect reads stale bytes past the new cbuf tail.
+    if (seg.data) seg.deallocateData();
     if (n > 0 && seg.allocateData(n * 3)) {
       byte *buf = seg.data;
       for (size_t i = 0; i < n; i++) {
